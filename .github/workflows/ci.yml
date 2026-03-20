@@ -1,0 +1,33 @@
+# .github/workflows/ci.yml
+name: EventBookingAPI CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore solution
+        run: dotnet restore EventBookingAPI.sln
+
+      - name: Build solution
+        run: dotnet build EventBookingAPI.sln --configuration Release --no-restore
+
+      - name: Build BookingService Docker image
+        run: docker build -t eventbooking-booking ./BookingService -f ./BookingService/Presentation/Dockerfile
+
+      - name: Build PaymentService Docker image
+        run: docker build -t eventbooking-payment ./PaymentService -f ./PaymentService/Presentation/Dockerfile
