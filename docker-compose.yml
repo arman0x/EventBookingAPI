@@ -78,7 +78,7 @@
     environment:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=bookingService;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       ConnectionStrings__Redis: "redis:6379,abortConnect=false"
-      Jwt__SecretKey: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
       InternalAuth__Secret: ${INTERNAL_SECRET}
     ports:
       - "5001:8080"
@@ -97,7 +97,7 @@
         condition: service_started
     environment:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=paymentService;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
-      Jwt__SecretKey: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
       BookingService__BaseUrl: "http://booking-service:8080"
       BookingService__InternalSecret: ${INTERNAL_SECRET}
     ports:
