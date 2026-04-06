@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://localhost:5079");
+builder.WebHost.UseUrls("http://*:5079");
 
 var connectionString = builder.Configuration.GetConnectionString("Default");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
@@ -38,6 +38,9 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
+app.MapGet("/ping", () => "pong");
 
 app.MapControllers();
 

@@ -18,7 +18,7 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://localhost:5001");
+builder.WebHost.UseUrls("http://*:5001");
 
 var connectionString = builder.Configuration.GetConnectionString("Default");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
@@ -110,6 +110,7 @@ app.UseAuthorization();
 
 app.UseMiddleware<TicketAvailabilityMiddleware>();
 
+app.MapGet("/", () => Results.Redirect("/swagger"));
 app.MapControllers();
 
 app.Run();
