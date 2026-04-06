@@ -63,6 +63,46 @@
       - --startup-project
       - PaymentService/Presentation
 
+  booking-service:
+    build:
+      context: .
+      dockerfile: BookingService/Dockerfile
+    image: booking-service:1.0
+    container_name: eventbooking-booking-service
+    restart: unless-stopped
+    depends_on:
+      booking-migrations:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=bookingService;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__Redis: "redis:6379,abortConnect=false"
+      Jwt__SecretKey: ${JWT_SECRET}
+      InternalAuth__Secret: ${INTERNAL_SECRET}
+    ports:
+      - "5001:8080"
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: PaymentService/Dockerfile
+    image: payment-service:1.0
+    container_name: eventbooking-payment-service
+    restart: unless-stopped
+    depends_on:
+      payment-migrations:
+        condition: service_completed_successfully
+      booking-service:
+        condition: service_started
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=paymentService;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Jwt__SecretKey: ${JWT_SECRET}
+      BookingService__BaseUrl: "http://booking-service:8080"
+      BookingService__InternalSecret: ${INTERNAL_SECRET}
+    ports:
+      - "5079:8080"
+
 volumes:
   postgres-data:
   redis-data:
