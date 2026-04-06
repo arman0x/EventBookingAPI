@@ -20,6 +20,7 @@ obj/
 # Ignore user config
 **/*.user
 **/*.suo
+/.env
 
 # Ignore all appsettings except example
 **/appsettings.json
