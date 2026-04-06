@@ -21,6 +21,8 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
+RUN mv appsettings.Example.json appsettings.json
+
 ENV ASPNETCORE_URLS=http://+:8080
 
 ENV ASPNETCORE_ENVIRONMENT=Production
