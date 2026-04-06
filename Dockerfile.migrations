@@ -1,0 +1,21 @@
+﻿FROM mcr.microsoft.com/dotnet/sdk:10.0
+
+WORKDIR /src
+
+RUN dotnet tool install --global dotnet-ef --version 10.0.*
+
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+COPY ["BookingService/Domain/Domain.csproj", "BookingService/Domain/"]
+COPY ["BookingService/Application/Application.csproj", "BookingService/Application/"]
+COPY ["BookingService/Infrastructure/Infrastructure.csproj", "BookingService/Infrastructure/"]
+COPY ["BookingService/Presentation/Presentation.csproj", "BookingService/Presentation/"]
+COPY ["PaymentService/Domain/Domain.csproj", "PaymentService/Domain/"]
+COPY ["PaymentService/Application/Application.csproj", "PaymentService/Application/"]
+COPY ["PaymentService/Infrastructure/Infrastructure.csproj", "PaymentService/Infrastructure/"]
+COPY ["PaymentService/Presentation/Presentation.csproj", "PaymentService/Presentation/"]
+
+RUN dotnet restore BookingService/Presentation/Presentation.csproj
+RUN dotnet restore PaymentService/Presentation/Presentation.csproj
+
+COPY . .
