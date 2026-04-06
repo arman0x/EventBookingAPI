@@ -17,8 +17,10 @@ docker-compose.*.yml
 .dockerignore
 
 # Dev settings
+**/appsettings.json
 **/appsettings.Development.json
-**/appsettings.Example.json
+**/appsettings.Production.json
+!**/appsettings.Example.json
 
 # Docs & logs
 **/*.md
