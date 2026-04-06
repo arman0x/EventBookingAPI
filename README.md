@@ -14,7 +14,7 @@ Two main services:
 
 ## Tech Stack
 
-* ASP.NET Core 9.0
+* ASP.NET Core 10.0
 * Clean Architecture (Domain / Application / Infrastructure / Presentation)
 * PostgreSQL + EF Core
 * Redis (StackExchange.Redis)
