@@ -30,4 +30,3 @@ obj/
 !**/appsettings.Example.json
 
 docker-compose.override.yml
-.dockerignore
