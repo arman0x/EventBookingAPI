@@ -1,4 +1,5 @@
 ﻿services:
+
   postgres:
     image: postgres:16.1
     container_name: eventbooking-postgres
@@ -11,6 +12,12 @@
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   redis:
     image: redis:7.2-alpine
@@ -19,6 +26,42 @@
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
+
+  booking-migrations:
+    image: eventbooking-migrations:1.0
+    container_name: eventbooking-booking-migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=bookingService;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    command:
+      - dotnet
+      - ef
+      - database
+      - update
+      - --project
+      - BookingService/Infrastructure
+      - --startup-project
+      - BookingService/Presentation
+
+  payment-migrations:
+    image: eventbooking-migrations:1.0
+    container_name: eventbooking-payment-migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=paymentService;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    command:
+      - dotnet
+      - ef
+      - database
+      - update
+      - --project
+      - PaymentService/Infrastructure
+      - --startup-project
+      - PaymentService/Presentation
 
 volumes:
   postgres-data:
