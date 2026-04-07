@@ -29,13 +29,13 @@ Two main services:
 * JWT-based login
 * Passwords hashed with BCrypt
 * Role checks (User, Admin)
-* Config stored in config files, not hardcoded
+* Secrets passed via environment variables, not hardcoded in config
 
 ---
 
 ## Quick Start
 
-### Without Docker
+### With Docker (recommended)
 
 1. Clone the repo:
 
@@ -44,148 +44,173 @@ git clone https://github.com/YOUR_USERNAME/EventBookingAPI.git
 cd EventBookingAPI
 ```
 
-2. Copy config templates:
+2. Create `.env` file in the project root:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_postgres_password
+JWT_SECRET=your_super_secret_key_at_least_32_chars
+INTERNAL_SECRET=your_internal_service_secret
+```
+
+> The same `JWT_SECRET` is used by both services — they must match.
+
+3. Start everything:
 
 ```bash
+docker compose up -d --build
+```
+
+Migrations run automatically on first start. Swagger UI:
+
+* http://localhost:5001/swagger
+* http://localhost:5079/swagger
+
+---
+
+### Without Docker
+
+1. Clone the repo and copy config templates:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/EventBookingAPI.git
+cd EventBookingAPI
 cp BookingService/Presentation/appsettings.Example.json BookingService/Presentation/appsettings.json
 cp PaymentService/Presentation/appsettings.Example.json PaymentService/Presentation/appsettings.json
 ```
 
-3. Edit both `appsettings.json` files:
+2. Edit both `appsettings.json` files — fill in your PostgreSQL credentials.
 
-* `your_username` → `postgres`
-* `your_password` → your PostgreSQL password
-* `your_super_secret_key` → any strong secret, 32+ characters
-  **The key must be identical in both services.**
+3. Set the `JWT_SECRET` environment variable (must be the same for both services):
+
+```bash
+# Linux/macOS
+export JWT_SECRET=your_super_secret_key_at_least_32_chars
+
+# Windows (PowerShell)
+$env:JWT_SECRET="your_super_secret_key_at_least_32_chars"
+```
 
 4. Apply DB migrations:
 
 ```bash
-cd BookingService
-dotnet ef database update -p Infrastructure -s Presentation
-
-cd ../PaymentService
-dotnet ef database update -p Infrastructure -s Presentation
+dotnet ef database update -p BookingService/Infrastructure -s BookingService/Presentation
+dotnet ef database update -p PaymentService/Infrastructure -s PaymentService/Presentation
 ```
 
 5. Start services (two terminals):
 
 ```bash
-cd BookingService/Presentation
-dotnet run
+cd BookingService/Presentation && dotnet run
 ```
 
 ```bash
-cd PaymentService/Presentation
-dotnet run
-```
-
-6. Swagger UI:
-
-* [http://localhost:5001/swagger](http://localhost:5001/swagger)
-* [http://localhost:5079/swagger](http://localhost:5079/swagger)
-
----
-
-### With Docker (easier)
-
-```bash
-git clone https://github.com/YOUR_USERNAME/EventBookingAPI.git
-cd EventBookingAPI
-docker-compose up -d
-```
-
-Run migrations (first time only):
-
-```bash
-docker-compose exec booking-service dotnet ef database update
-docker-compose exec payment-service dotnet ef database update
-```
-
-Swagger:
-
-* [http://localhost:5001/swagger](http://localhost:5001/swagger)
-* [http://localhost:5079/swagger](http://localhost:5079/swagger)
-
-Stop:
-
-```bash
-docker-compose down
-# or remove data:
-docker-compose down -v
+cd PaymentService/Presentation && dotnet run
 ```
 
 ---
 
-## API (Short Overview)
+## How to Use the API
+
+### 1. Register
+
+```
+POST /api/auth/register
+{ "email": "user@example.com", "password": "YourPassword123!" }
+```
+
+### 2. Login and get token
+
+```
+POST /api/auth/login
+{ "email": "user@example.com", "password": "YourPassword123!" }
+```
+
+Response:
+```json
+{ "token": "eyJhbGci..." }
+```
+
+### 3. Authorize in Swagger
+
+Click the **Authorize** button at the top of the Swagger page, paste the token, click **Authorize**.
+
+### 4. Use protected endpoints
+
+All endpoints except `/api/auth/*` require `Authorization: Bearer <token>`.
+
+---
+
+## API Overview
 
 ### BookingService
 
 #### Authentication
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| POST | /api/auth/register | Register new user | No |
-| POST | /api/auth/login | Login and get JWT token | No |
+| Method | Endpoint | Auth |
+| :--- | :--- | :--- |
+| POST | /api/auth/register | No |
+| POST | /api/auth/login | No |
 
 #### Events
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| GET | /api/event | Get all events | Yes |
-| GET | /api/event/{id} | Get event by ID | Yes |
-| POST | /api/event | Create new event | Yes |
-| PATCH | /api/event/{id} | Update event | Yes |
-| DELETE | /api/event/{id} | Delete event | Yes |
+| Method | Endpoint | Auth |
+| :--- | :--- | :--- |
+| GET | /api/event | Yes |
+| GET | /api/event/{id} | Yes |
+| POST | /api/event | Yes |
+| PATCH | /api/event/{id} | Yes |
+| DELETE | /api/event/{id} | Yes |
 
 #### Tickets
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| GET | /api/ticket | Get all tickets | Yes |
-| GET | /api/ticket/{id} | Get ticket by ID | Yes |
-| GET | /api/ticket/paged?page=1\&pageSize=10 | Get paginated tickets | Yes |
-| POST | /api/ticket | Purchase ticket | Yes |
-| PATCH | /api/ticket/{id} | Update ticket | Yes |
-| DELETE | /api/ticket/{id} | Delete ticket | Yes |
+| Method | Endpoint | Auth |
+| :--- | :--- | :--- |
+| GET | /api/ticket | Yes |
+| GET | /api/ticket/{id} | Yes |
+| GET | /api/ticket/paged?page=1&pageSize=10 | Yes |
+| POST | /api/ticket | Yes |
+| PATCH | /api/ticket/{id} | Yes |
+| DELETE | /api/ticket/{id} | Yes |
 
 #### Users
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| GET | /api/user | Get all users | Yes |
-| GET | /api/user/{id} | Get user by ID | Yes |
-| POST | /api/user | Create user | Yes |
-| PATCH | /api/user/{id} | Update user | Yes |
-| DELETE | /api/user/{id} | Delete user | Yes |
+| Method | Endpoint | Auth |
+| :--- | :--- | :--- |
+| GET | /api/user | Yes |
+| GET | /api/user/{id} | Yes |
+| POST | /api/user | Yes |
+| PATCH | /api/user/{id} | Yes |
+| DELETE | /api/user/{id} | Yes |
 
 #### Venues
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| GET | /api/venue | Get all venues | Yes |
-| GET | /api/venue/{id} | Get venue by ID | Yes |
-| POST | /api/venue | Create venue | Yes |
-| PATCH | /api/venue/{id} | Update venue | Yes |
-| DELETE | /api/venue/{id} | Delete venue | Yes |
+| Method | Endpoint | Auth |
+| :--- | :--- | :--- |
+| GET | /api/venue | Yes |
+| GET | /api/venue/{id} | Yes |
+| POST | /api/venue | Yes |
+| PATCH | /api/venue/{id} | Yes |
+| DELETE | /api/venue/{id} | Yes |
 
-### PaymentService Endpoints
+### PaymentService
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| GET | /api/payment | Get all payments | No |
-| GET | /api/payment/{id} | Get payment by ID | No |
-| POST | /api/payment | Create payment (validates ticket) | No |
-
+| Method | Endpoint | Auth |
+| :--- | :--- | :--- |
+| GET | /api/payment | Yes |
+| GET | /api/payment/{id} | Yes |
+| POST | /api/payment | Yes |
 
 ---
 
 ## Docker Commands
 
 ```bash
-docker-compose up -d        # start
-docker-compose down         # stop
-docker-compose down -v      # stop + delete data
-docker-compose logs -f      # logs
-docker-compose exec booking-service /bin/bash
+docker compose up -d --build   # build and start
+docker compose up -d           # start (no rebuild)
+docker compose down            # stop
+docker compose down -v         # stop + delete all data
+docker compose logs -f         # stream logs
+docker compose logs -f booking-service   # logs for one service
+docker compose exec booking-service /bin/bash
 ```

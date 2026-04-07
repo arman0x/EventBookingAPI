@@ -19,7 +19,7 @@ public class JwtService : IJwtService
     {
         _configuration = configuration;
 
-        var key = _configuration["Jwt:SecretKey"];
+        var key = _configuration["JWT_SECRET"];
         _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
 
         _issuer = _configuration["Jwt:Issuer"];

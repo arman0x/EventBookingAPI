@@ -1,0 +1,30 @@
+﻿# build artifacts 
+**/bin/
+**/obj/
+
+# IDE
+.idea/
+.vs/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Dev settings
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
+!**/appsettings.Example.json
+
+# Docs & logs
+**/*.md
+**/*.log
+
+# Configs
+.env
