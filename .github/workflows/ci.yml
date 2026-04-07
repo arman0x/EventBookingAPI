@@ -1,0 +1,23 @@
+﻿name: CI
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        
+      - name: build booking-service
+        run: docker build -f BookingService/Dockerfile -t booking-service:1.0 .
+
+      - name: build payment-service
+        run: docker build -f PaymentService/Dockerfile -t payment-service:1.0 .
+    
